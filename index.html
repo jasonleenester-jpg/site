@@ -179,7 +179,7 @@
                 { title: "Video & Motion", icon: <Icons.Play />, color: "text-cyan-500" },
             ];
 
-            const featuredWork = [
+            const defaultFeaturedWork = [
                 {
                     id: "moonbeam",
                     title: "Moonbeam Preschool",
@@ -234,8 +234,8 @@
                 }
             ];
 
-            const galleryCategories = ["Web & Interaction", "Apps & Games", "Art & Illustration", "Print & Branding"];
-            const galleryItems = {
+            const defaultGalleryCategories = ["Web & Interaction", "Apps & Games", "Art & Illustration", "Print & Branding"];
+            const defaultGalleryItems = {
                 "Web & Interaction": [
                     { title: "Web & Interaction Design", desc: "Digital Experiences", icon: <Icons.Globe /> },
                     { title: "Train Your Brain", desc: "Tech Training at Kent State", icon: <Icons.Layout /> },
@@ -254,6 +254,49 @@
                     { title: "Print & Publication", desc: "Editorial Design", icon: <Icons.Layout /> },
                 ]
             };
+
+            const [featuredWork, setFeaturedWork] = useState(defaultFeaturedWork);
+            const [galleryCategories, setGalleryCategories] = useState(defaultGalleryCategories);
+            const [galleryItems, setGalleryItems] = useState(defaultGalleryItems);
+
+            // CMS Data Fetching Effect
+            useEffect(() => {
+                // Fetch Dynamic Projects
+                fetch('./content/projects.json')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.items && data.items.length > 0) {
+                            setFeaturedWork(data.items);
+                        }
+                    })
+                    .catch(err => console.log('CMS Projects unavailable, keeping default defaults.'));
+
+                // Fetch Dynamic Gallery
+                fetch('./content/gallery.json')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.items && data.items.length > 0) {
+                            const grouped = {};
+                            const cats = new Set();
+                            data.items.forEach(item => {
+                                cats.add(item.category);
+                                if (!grouped[item.category]) grouped[item.category] = [];
+                                grouped[item.category].push({
+                                    title: item.title,
+                                    desc: item.category,
+                                    image: item.image,
+                                    icon: <Icons.Palette />
+                                });
+                            });
+                            setGalleryCategories(Array.from(cats));
+                            setGalleryItems(grouped);
+                            setActiveTab(Array.from(cats)[0] || defaultGalleryCategories[0]);
+                        }
+                    })
+                    .catch(err => console.log('CMS Gallery unavailable, keeping defaults.'));
+            }, []);
+
+            const processSteps = ["Discovery", "Strategy", "UX & Design", "Build & Launch", "Optimize"];
 
             const processSteps = ["Discovery", "Strategy", "UX & Design", "Build & Launch", "Optimize"];
 
@@ -374,10 +417,10 @@
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in" key={activeTab}>
-                                        {galleryItems[activeTab].map((item, i) => (
+                                        {galleryItems[activeTab] && galleryItems[activeTab].map((item, i) => (
                                             <div key={i} className="group glass p-6 rounded-2xl border border-white/5 hover:border-white/20 transition-all cursor-pointer flex flex-col items-center justify-center text-center relative overflow-hidden h-40">
-                                                <div className="text-slate-600 group-hover:text-cyan-400 transition-colors mb-4 scale-125">
-                                                    {item.icon}
+                                                <div className={`w-14 h-14 rounded-2xl ${item.image ? 'glass' : 'bg-white/5'} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform overflow-hidden relative text-cyan-400`}>
+                                                    {item.image ? <img src={item.image} alt={item.title} className="w-full h-full object-cover" /> : item.icon}
                                                 </div>
                                                 <h5 className="text-[11px] font-black uppercase tracking-widest text-white mb-1">{item.title}</h5>
                                                 <p className="text-[9px] text-slate-500 uppercase font-bold">{item.desc}</p>
@@ -440,30 +483,57 @@
                                         <Icons.X />
                                     </button>
                                 </div>
-                                <div className="p-8 max-h-[70vh] overflow-y-auto">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                <div className="p-8 max-h-[70vh] overflow-y-auto w-full">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-8">
                                         <div className="space-y-8">
-                                            <div>
-                                                <h4 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2">THE CHALLENGE</h4>
-                                                <p className="text-slate-400 leading-relaxed">{selectedProject.details.challenge}</p>
-                                            </div>
-                                            <div>
-                                                <h4 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2">THE SOLUTION</h4>
-                                                <p className="text-slate-400 leading-relaxed">{selectedProject.details.solution}</p>
-                                            </div>
+                                            {selectedProject.details && selectedProject.details.challenge && (
+                                                <div>
+                                                    <h4 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2">THE CHALLENGE</h4>
+                                                    <p className="text-slate-400 leading-relaxed">{selectedProject.details.challenge}</p>
+                                                </div>
+                                            )}
+                                            {selectedProject.details && selectedProject.details.solution && (
+                                                <div>
+                                                    <h4 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2">THE SOLUTION</h4>
+                                                    <p className="text-slate-400 leading-relaxed">{selectedProject.details.solution}</p>
+                                                </div>
+                                            )}
+                                            {selectedProject.description && (
+                                                <div>
+                                                    <h4 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2">OVERVIEW</h4>
+                                                    <div className="text-slate-400 leading-relaxed whitespace-pre-wrap">{selectedProject.description}</div>
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="bg-white/[0.03] rounded-2xl p-6 border border-white/5 h-fit">
-                                            <h4 className="text-xs font-black text-white uppercase tracking-widest mb-6">KEY RESULTS</h4>
-                                            <ul className="space-y-4">
-                                                {selectedProject.details.results.map((result, i) => (
-                                                    <li key={i} className="flex items-start gap-3 text-slate-300">
-                                                        <Icons.ChevronRight /> <span className="text-sm font-medium">{result}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                            <button className="mt-8 w-full py-4 bg-cyan-500 text-black font-black rounded-xl hover:bg-cyan-400 transition-all">Launch Live Site</button>
-                                        </div>
+                                        {selectedProject.details && selectedProject.details.results && (
+                                            <div className="bg-white/[0.03] rounded-2xl p-6 border border-white/5 h-fit">
+                                                <h4 className="text-xs font-black text-white uppercase tracking-widest mb-6">KEY RESULTS</h4>
+                                                <ul className="space-y-4">
+                                                    {selectedProject.details.results.map((result, i) => (
+                                                        <li key={i} className="flex items-start gap-3 text-slate-300">
+                                                            <Icons.ChevronRight /> <span className="text-sm font-medium">{result.result || result}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                                {selectedProject.button_link && (
+                                                    <a href={selectedProject.button_link} target="_blank" rel="noopener noreferrer" className="mt-8 hover:!text-black block text-center w-full py-4 bg-cyan-500 text-black font-black rounded-xl hover:bg-cyan-400 transition-all">Launch Project Component</a>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
+
+                                    {selectedProject.gallery && selectedProject.gallery.length > 0 && (
+                                        <div className="mt-12 border-t border-white/10 pt-8 w-full">
+                                            <h4 className="text-xs font-black text-white uppercase tracking-widest mb-6 border-l-2 border-cyan-400 pl-4 w-full text-left">Project Gallery</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {selectedProject.gallery.map((galleryImg, idx) => (
+                                                    <div key={idx} className="rounded-xl overflow-hidden glass aspect-video relative">
+                                                        <img src={galleryImg.image || galleryImg} alt={`Gallery Image ${idx + 1}`} className="absolute w-full h-full object-cover" />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="h-1.5 w-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 opacity-50"></div>
                             </div>

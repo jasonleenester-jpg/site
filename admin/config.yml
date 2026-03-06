@@ -1,0 +1,61 @@
+backend:
+  name: github
+  repo: jasonleenester-jpg/site
+  branch: main
+  # Optional: For local development, uncomment the following line and run 'npx netlify-cms-proxy-server'
+  # local_backend: true
+
+media_folder: "images/uploads"
+public_folder: "/images/uploads"
+
+collections:
+  - name: "site_data"
+    label: "Site Content Data"
+    files:
+      - label: "Case Studies & Projects"
+        name: "projects"
+        file: "content/projects.json"
+        description: "Manage all featured projects on the website"
+        fields:
+          - label: "Projects List"
+            name: "items"
+            widget: "list"
+            fields:
+              - {label: "ID", name: "id", widget: "string"}
+              - {label: "Title", name: "title", widget: "string"}
+              - {label: "Subtitle", name: "subtitle", widget: "string", required: false}
+              - {label: "Category Label", name: "category", widget: "string", required: false}
+              - {label: "Color Theme (Tailwind Class)", name: "color", widget: "string", default: "from-blue-900/60"}
+              - {label: "Main Background Image", name: "image", widget: "image", required: false}
+              - {label: "Display as Main Project", name: "isMain", widget: "boolean", default: false}
+              - label: "Details"
+                name: "details"
+                widget: "object"
+                required: false
+                fields:
+                  - {label: "Challenge", name: "challenge", widget: "text"}
+                  - {label: "Solution", name: "solution", widget: "text"}
+                  - {label: "Results (Comma-separated)", name: "results", widget: "list", field: {label: "Result Bullet", name: "result", widget: "string"}}
+              - label: "Detailed Description"
+                name: "description"
+                widget: "markdown"
+                required: false
+              - {label: "Gallery Images", name: "gallery", widget: "list", field: {label: "Image", name: "image", widget: "image"}, required: false}
+              - {label: "Button Tracking Link", name: "button_link", widget: "string", required: false}
+
+      - label: "Image Portfolio Gallery"
+        name: "gallery"
+        file: "content/gallery.json"
+        description: "Manage portfolio images displayed in the archive grid"
+        fields:
+          - label: "Image List"
+            name: "items"
+            widget: "list"
+            fields:
+              - {label: "Title", name: "title", widget: "string"}
+              - label: "Category"
+                name: "category"
+                widget: "select"
+                options: ["Web & Interaction", "Apps & Games", "Art & Illustration", "Print & Branding", "Character Design", "UI"]
+                default: "Art & Illustration"
+              - {label: "Image File", name: "image", widget: "image"}
